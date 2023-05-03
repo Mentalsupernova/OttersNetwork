@@ -1,0 +1,49 @@
+syntax = "proto3";
+option csharp_namespace = "GrpcMessageBrotter";
+
+package DataDescripionH;
+
+// The greeting service definition.
+service DataDescripionHandler{
+  rpc WriteWebsiteInfo (WebsiteInfoRecordStream) returns (Empty);
+  rpc WriteDescritionInfo (WebsiteDescriptionRecord) returns (Empty);
+  rpc GetNextChunk (Empty) returns (UrlRecordStream);
+  rpc GetLastChunk (RestartChunkMessage) returns (UrlRecordStream);
+}
+
+message RestartChunkMessage {
+  int32 chunkid = 1;
+}
+// The request message containing the user's name.
+message WebsiteInfoRecord{
+    int32 id = 1;
+    string url = 2;
+    string imageName = 3;
+}
+message UrlRecord{
+  int32 chunkId = 1;
+  string url = 2;
+  string websiteType = 3;
+}
+
+message UrlRecordStream{
+  repeated UrlRecord records =1;
+}
+message WebsiteInfoRecordStream{
+  repeated WebsiteInfoRecord records = 1;
+}
+
+message WebsiteDescriptionRecord{
+  int32 id = 1;
+  string url = 2;
+  string description = 3;
+  string features = 4;
+  string modelVersion = 5;
+}
+message WebsiteDesctionRecordStream{
+  repeated WebsiteDescriptionRecord records = 1;
+}
+
+message Empty{
+  
+}
