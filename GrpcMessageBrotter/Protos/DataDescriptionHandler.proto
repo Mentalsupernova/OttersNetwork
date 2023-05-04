@@ -9,6 +9,7 @@ service DataDescripionHandler{
   rpc WriteDescritionInfo (WebsiteDescriptionRecord) returns (Empty);
   rpc GetNextChunk (Empty) returns (UrlRecordStream);
   rpc GetLastChunk (RestartChunkMessage) returns (UrlRecordStream);
+  rpc AddChunks (UrlRecordStream) returns (Empty);
 }
 
 message RestartChunkMessage {
@@ -34,7 +35,7 @@ message WebsiteInfoRecordStream{
 }
 
 message WebsiteDescriptionRecord{
-  int32 id = 1;
+  int32 DescriptionId = 1;
   string url = 2;
   string description = 3;
   string features = 4;
