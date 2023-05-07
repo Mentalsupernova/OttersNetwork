@@ -1,27 +1,64 @@
+using System.Data;
 using Grpc.Core;
+using GrpcMessageBrotter.Model;
+using Microsoft.Data.Sqlite;
 
 namespace GrpcMessageBrotter.Services;
 
 public class DataDescriptionHandlerService : DataDescripionHandler.DataDescripionHandlerBase
 
 {
-    public override Task<UrlRecordStream> GetLastChunk(RestartChunkMessage request, ServerCallContext context)
+    public override Task<Empty> UploadMessages(MessageUrlRecordStream request, ServerCallContext context)
     {
-        return base.GetLastChunk(request, context);
+        foreach (var record in request.Records)
+        {
+            var urlRecord = new UrlRecord(record.Url,record.Description,record.KeyWords,record.WebsiteType,record.Mood,record.ColorScheme);
+            urlRecord.UpdateData(); 
+        }
+        return Task.FromResult(new Empty()
+        {
+            
+        });
     }
 
-    public override Task<UrlRecordStream> GetNextChunk(Empty request, ServerCallContext context)
+    public override Task<Empty> UploadImage(MessageUrlRecordImage request, ServerCallContext context)
     {
-        return base.GetNextChunk(request, context);
-    }
+        
+using (var connection = new SqliteConnection("Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
+        {
+            connection.Open();
 
-    public override Task<Empty> WriteDescritionInfo(WebsiteDescriptionRecord request, ServerCallContext context)
-    {
-        return base.WriteDescritionInfo(request, context);
-    }
+            // Create a parameterized insert command
+            using (var insertCommand = new SqliteCommand("UPDATE UrlRecord SET RecordImage = @RecordImage WHERE RecordUrl = @RecordUrl", connection))
+            {
+                // Set the parameter values
+                insertCommand.Parameters.AddWithValue("@RecordUrl", request.Url);
 
-    public override Task<Empty> WriteWebsiteInfo(WebsiteInfoRecordStream request, ServerCallContext context)
-    {
-        return base.WriteWebsiteInfo(request, context);
+                // Read the image data from a file
+                byte[] imageData = request.Images.ToByteArray();
+
+                // Set the image parameter as a BLOB
+                insertCommand.Parameters.Add("@RecordImage", (SqliteType)DbType.Binary, imageData.Length).Value = imageData;
+
+                // Execute the command
+                int rowsAffected = insertCommand.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Console.WriteLine("Record inserted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Error inserting record.");
+                }
+            }
+        }
+        return Task.FromResult(new Empty()
+        {
+            
+        });
+        
     }
 }
+
+
