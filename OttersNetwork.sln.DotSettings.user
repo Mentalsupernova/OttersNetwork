@@ -1,0 +1,4 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/CodeInspection/PencilsConfiguration/ActualSeverity/@EntryValue">INFO</s:String>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=9d29a033_002D69c1_002D4599_002D8737_002D19e84c919020_0023WebScrapper/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UnloadedProject/UnloadedProjects/=b128660b_002D3311_002D48fc_002D8c83_002D00faac6d015f_0023OttersNetwork/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
