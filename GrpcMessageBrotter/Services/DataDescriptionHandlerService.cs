@@ -23,7 +23,7 @@ public class DataDescriptionHandler : DataDescripionHandler.DataDescripionHandle
     public override Task<MessageDataChunk> GetDataChunk(Empty request, ServerCallContext context)
     {
         var res = new MessageDataChunk();
-        using (var connection = new SqliteConnection(@"Data Source=C:\Users\Две выдры\Project\OttersNetwork\GrpcMessageBrotter\dataset_db.db"))
+using (var connection =new SqliteConnection(@"Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
         {
             connection.Open();
 
@@ -50,10 +50,16 @@ public class DataDescriptionHandler : DataDescripionHandler.DataDescripionHandle
                             // Loop through the records and do something with them
                             while (reader.Read())
                             {
+                                
+                                if (reader.GetInt32(8) == 1)
+                                {
                                 var record = new MessageToDownloadRecord();
                                 record.RecordId = reader.GetInt32(0);
                                 record.Url = reader.GetString(1);
+                                
                                 res.Records.Add(record);
+                                    
+                                }
 
 
                             }
@@ -73,12 +79,12 @@ public class DataDescriptionHandler : DataDescripionHandler.DataDescripionHandle
     public override Task<Empty> UploadImage(MessageUrlRecordImage request, ServerCallContext context)
     {
         Console.WriteLine(234);
-using (var connection = new SqliteConnection(@"Data Source=C:\Users\Две выдры\Project\OttersNetwork\GrpcMessageBrotter\dataset_db.db"))
+using (var connection =new SqliteConnection(@"Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
         {
             connection.Open();
 
             // Create a parameterized insert command
-            using (var insertCommand = new SqliteCommand("UPDATE UrlRecord SET RecordImage = @RecordImage WHERE RecordUrl = @RecordUrl", connection))
+            using (var insertCommand = new SqliteCommand("UPDATE UrlRecord SET RecordImage = @RecordImage,RecordImageProcessed =@RecordImageProcessed  WHERE RecordUrl = @RecordUrl", connection))
             {
                 // Set the parameter values
                 insertCommand.Parameters.AddWithValue("@RecordUrl", request.Url);
@@ -88,6 +94,7 @@ using (var connection = new SqliteConnection(@"Data Source=C:\Users\Две вы�
 
                 // Set the image parameter as a BLOB
                 insertCommand.Parameters.Add("@RecordImage", (SqliteType)DbType.Binary, imageData.Length).Value = imageData;
+                insertCommand.Parameters.Add("@RecordImageProcessed", (SqliteType)DbType.Int32, 1).Value = imageData;
 
                 // Execute the command
                 int rowsAffected = insertCommand.ExecuteNonQuery();

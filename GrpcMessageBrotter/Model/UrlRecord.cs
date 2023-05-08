@@ -12,6 +12,7 @@ public class UrlRecord
    public string RecordMood { get; set; }
    public string RecordColorScheme { get; set; }
    public byte[] RecordImage { get; set; }
+   public bool RecordImageProcessed { get; set; }
    
    public UrlRecord(string recordUrl, string recordDescription, string recordKeyWords, string recordWebsiteType, string recordMood, string recordColorScheme)
    {

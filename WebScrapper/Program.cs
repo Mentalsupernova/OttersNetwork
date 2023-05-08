@@ -36,6 +36,7 @@ public  class ScreenShooter
 
 static class Program
 {
+    private static int counter = 0;
     static async Task SendToServer(WebsiteScreenshotRecord record)
     {
         using (var channel = GrpcChannel.ForAddress("http://localhost:5128"))
@@ -60,8 +61,9 @@ static class Program
             {
                 urls.Add(record.Url);
             }
-        }
 
+            counter = reply.Records.Count;
+        }
         return urls;
 
     }
@@ -75,13 +77,25 @@ static class Program
         var bs = ByteString.CopyFrom(y);
         t.Screenshot = bs;
         await SendToServer(t);
+        counter--;
     }
-    static async Task Main()
+
+    static async Task ProcessAllChunks()
     {
         foreach (var url in await GetChunks())
         {
             await ProcessScreenShot(url);
         }
-       
+    }
+    
+    static async Task Main()
+    {
+        while (true)
+        {
+            if (counter == 0)
+            {
+                await ProcessAllChunks();
+            }
+        }
     }
 }

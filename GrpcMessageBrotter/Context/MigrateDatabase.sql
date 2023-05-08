@@ -7,4 +7,5 @@ create table if not exists UrlRecord(
     ,RecordMood TEXT NULL
     ,RecordColorScheme TEXT NULL
     ,RecordImage blob NULL 
+    ,RecordImageProcessed INTEGER NULL
 );

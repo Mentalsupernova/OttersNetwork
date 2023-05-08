@@ -11,16 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGrpc();
 
 var app = builder.Build();
-using (var db =new SqliteConnection(@"Data Source=C:\Users\Две выдры\Project\OttersNetwork\GrpcMessageBrotter\dataset_db.db"))
+using (var db =new SqliteConnection(@"Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
 {
     db.Open();
-    FileInfo file = new FileInfo(@"C:\Users\Две выдры\Project\OttersNetwork\GrpcMessageBrotter\Context\MigrateDatabase.sql");
+    FileInfo file = new FileInfo(@"/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/Context/MigrateDatabase.sql");
     string script = file.OpenText().ReadToEnd();
     var d =db.CreateCommand();
     d.CommandText = script;
     d.ExecuteNonQuery();
-    
-    }
+}
+
 // Configure the HTTP request pipeline.
 app.MapGrpcService<DataDescriptionHandler>();
 app.MapGet("/",
