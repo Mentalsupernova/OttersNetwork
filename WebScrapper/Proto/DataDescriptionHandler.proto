@@ -4,7 +4,7 @@ option csharp_namespace = "GrpcMessageBrotter";
 package DataDescripionH;
 
 // The greeting service definition.
-service datadescripionhandler{
+service DataDescripionHandler{
   rpc UploadMessages (MessageUrlRecordStream) returns (Empty);
   rpc UploadImage (MessageUrlRecordImage) returns (Empty);
   rpc GetDataChunk (Empty) returns (MessageDataChunk);
