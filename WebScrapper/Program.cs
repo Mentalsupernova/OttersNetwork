@@ -38,18 +38,38 @@ static class Program
 {
     static async Task SendToServer(WebsiteScreenshotRecord record)
     {
-        using var channel = GrpcChannel.ForAddress("http://localhost:5128");
-        var client = new DataDescripionHandler.DataDescripionHandlerClient(channel);
-        var reply = await client.UploadImageAsync(
+        using (var channel = GrpcChannel.ForAddress("http://localhost:5128"))
+        {
+            var client = new DataDescripionHandler.DataDescripionHandlerClient(channel);
+            var reply = await client.UploadImageAsync(
             
-            new MessageUrlRecordImage() {Id = 0,RecordId = 0,Url =record.Url,Images =record.Screenshot});    //Url = record.Url,RecordId = 0,Images = record.Screenshot,Id = 0
+                new MessageUrlRecordImage() {Id = 0,RecordId = 0,Url =record.Url,Images =record.Screenshot});    //Url = record.Url,RecordId = 0,Images = record.Screenshot,Id = 0
+
+        }
+       
     }
-    
-    static async Task ProcessScreenShot()
+
+    static async Task<List<string>> GetChunks()
+    {
+        List<string> urls = new List<string>();
+        using (var channel = GrpcChannel.ForAddress("http://localhost:5128"))
+        {
+            var client = new DataDescripionHandler.DataDescripionHandlerClient(channel);
+            var reply = await client.GetDataChunkAsync(new Empty());
+            foreach (var record in reply.Records)
+            {
+                urls.Add(record.Url);
+            }
+        }
+
+        return urls;
+
+    }
+    static async Task ProcessScreenShot(string url)
     {
         var u = new ScreenShooter();
         var t = new WebsiteScreenshotRecord();
-        t.Url = "https://google.com";
+        t.Url = url;
         var y =  await u.MakeScreenshot(t.Url);
         Console.WriteLine(y.Length);
         var bs = ByteString.CopyFrom(y);
@@ -58,6 +78,10 @@ static class Program
     }
     static async Task Main()
     {
-        await ProcessScreenShot();
+        foreach (var url in await GetChunks())
+        {
+            await ProcessScreenShot(url);
+        }
+       
     }
 }
