@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+
+package DataDescripionH;
+
+// The greeting service definition.
+service DataDescripionHandler{
+  rpc UploadMessages (MessageUrlRecordStream) returns (Empty);
+  rpc UploadImage (MessageUrlRecordImage) returns (Empty);
+}
+
+message MessageUrlRecord{
+  int32 id = 1;
+  string url = 2;
+  string description= 3;
+  string keyWords = 4;
+  string websiteType = 5;
+  string mood = 6; 
+  string colorScheme =  7;
+}
+
+message MessageUrlRecordImage {
+  int32 id  = 1;
+  int32 RecordId = 2;
+  string url = 3;
+  bytes images = 4;
+}
+
+message MessageUrlRecordStream {
+  repeated  MessageUrlRecord  records = 1;
+}
+message Empty{
+  
+}
