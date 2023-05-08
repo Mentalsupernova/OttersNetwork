@@ -5,8 +5,7 @@ using Microsoft.Data.Sqlite;
 
 namespace GrpcMessageBrotter.Services;
 
-public class DataDescriptionHandlerService : DataDescripionHandler
-
+public class DataDescriptionHandler : DataDescripionHandler.DataDescripionHandlerBase
 {
     public override Task<Empty> UploadMessages(MessageUrlRecordStream request, ServerCallContext context)
     {
@@ -24,7 +23,7 @@ public class DataDescriptionHandlerService : DataDescripionHandler
     public override Task<MessageDataChunk> GetDataChunk(Empty request, ServerCallContext context)
     {
         var res = new MessageDataChunk();
-        using (var connection = new SqliteConnection("Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
+        using (var connection = new SqliteConnection(@"Data Source=C:\Users\Две выдры\Project\OttersNetwork\GrpcMessageBrotter\dataset_db.db"))
         {
             connection.Open();
 
@@ -73,8 +72,8 @@ public class DataDescriptionHandlerService : DataDescripionHandler
 
     public override Task<Empty> UploadImage(MessageUrlRecordImage request, ServerCallContext context)
     {
-        
-using (var connection = new SqliteConnection("Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
+        Console.WriteLine(234);
+using (var connection = new SqliteConnection(@"Data Source=C:\Users\Две выдры\Project\OttersNetwork\GrpcMessageBrotter\dataset_db.db"))
         {
             connection.Open();
 

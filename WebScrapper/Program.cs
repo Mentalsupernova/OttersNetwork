@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Google.Protobuf;
 using Grpc.Net.Client;
-using GrpcMessageBrotter;
+using GrpcMessageBrotterClient;
 using PuppeteerSharp;
 
 public  class WebsiteScreenshotRecord
@@ -38,10 +38,11 @@ static class Program
 {
     static async Task SendToServer(WebsiteScreenshotRecord record)
     {
-        using var channel = GrpcChannel.ForAddress("https://localhost:5128");
+        using var channel = GrpcChannel.ForAddress("http://localhost:5128");
         var client = new DataDescripionHandler.DataDescripionHandlerClient(channel);
         var reply = await client.UploadImageAsync(
-            new MessageUrlRecordImage() {Url = record.Url,RecordId = 0,Images = record.Screenshot});    
+            
+            new MessageUrlRecordImage() {Id = 0,RecordId = 0,Url =record.Url,Images =record.Screenshot});    //Url = record.Url,RecordId = 0,Images = record.Screenshot,Id = 0
     }
     
     static async Task ProcessScreenShot()

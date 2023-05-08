@@ -9,6 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Protobuf Include="Protos\DataDescriptionHandler.proto" GrpcServices="Client" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="EntityFramework" Version="6.4.4" />
       <PackageReference Include="Google.Protobuf" Version="3.23.0-rc3" />
       <PackageReference Include="GrabzIt" Version="3.5.4" />
@@ -36,15 +40,6 @@
       </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <Protobuf Include="Proto\DataDescriptionHandler.proto">
-        <GrpcServices>Client</GrpcServices>
-        <Access>Public</Access>
-        <ProtoCompile>True</ProtoCompile>
-        <CompileOutputs>True</CompileOutputs>
-        <OutputDir>obj\Debug/net7.0/</OutputDir>
-        <Generator>MSBuild:Compile</Generator>
-      </Protobuf>
-    </ItemGroup>
+
 
 </Project>
