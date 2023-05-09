@@ -9,8 +9,16 @@ service DataDescripionHandler{
   rpc UploadMessages (MessageUrlRecordStream) returns (Empty);
   rpc UploadImage (MessageUrlRecordImage) returns (Empty);
   rpc GetDataChunk (Empty) returns (MessageDataChunk);
+  rpc GetReadyData (Empty) returns (MessageUrlRecordReady);
 }
 
+message MessageGetReadyDataRequest{
+   
+}
+
+message MessageUrlRecordReady {
+  
+}
 message MessageDataChunk{
   repeated MessageToDownloadRecord records = 1;
 }

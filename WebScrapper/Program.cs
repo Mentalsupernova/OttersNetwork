@@ -28,8 +28,7 @@ public  class ScreenShooter
         await page.GoToAsync(url);
         var opt = new ScreenshotOptions();
         opt.FullPage = true;
-        opt.Quality = 90;
-        opt.Type = ScreenshotType.Jpeg;
+        opt.Type = ScreenshotType.Png;
         var screen = await page.ScreenshotDataAsync(opt);
         return screen;
     }
