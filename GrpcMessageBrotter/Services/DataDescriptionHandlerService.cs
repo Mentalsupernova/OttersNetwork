@@ -1,7 +1,9 @@
 using System.Data;
 using Grpc.Core;
 using GrpcMessageBrotter.Model;
+using GrpcMessageBrotter.Private;
 using Microsoft.Data.Sqlite;
+using Npgsql;
 
 namespace GrpcMessageBrotter.Services;
 
@@ -11,7 +13,7 @@ public class DataDescriptionHandler : DataDescripionHandler.DataDescripionHandle
     {
         foreach (var record in request.Records)
         {
-            var urlRecord = new UrlRecord(record.Url,record.Description,record.KeyWords,record.WebsiteType,record.Mood,record.ColorScheme);
+            var urlRecord = new UrlRecord(record.Url,record.Description,record.KeyWords,record.WebsiteType,record.Mood,record.ColorScheme,0,0);
             urlRecord.UpdateData(); 
         }
         return Task.FromResult(new Empty()
@@ -20,20 +22,20 @@ public class DataDescriptionHandler : DataDescripionHandler.DataDescripionHandle
         });
     }
 
-    public override Task<MessageDataChunk> GetDataChunk(Empty request, ServerCallContext context)
+    public override async Task<MessageDataChunk> GetDataChunk(Empty request, ServerCallContext context)
     {
         var res = new MessageDataChunk();
-using (var connection =new SqliteConnection(@"Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
+using (var connection =new NpgsqlConnection(Config.cs))
         {
             connection.Open();
 
             // Get the total number of rows in the table
-            using (var countCommand = new SqliteCommand("SELECT COUNT(*) FROM UrlRecord", connection))
+            using (var countCommand = new NpgsqlCommand("SELECT COUNT(*) FROM UrlRecord", connection))
             {
-                int rowCount = Convert.ToInt32(countCommand.ExecuteScalar());
+                long rowCount = Convert.ToInt64(countCommand.ExecuteScalar());
 
                 // Create a parameterized select command
-                using (var selectCommand = new SqliteCommand("SELECT * FROM UrlRecord", connection))
+                using (var selectCommand = new NpgsqlCommand("SELECT * FROM UrlRecord", connection))
                 {
                     // If there are more than 100 rows, limit the results to 100
                     if (rowCount > 100)
@@ -41,50 +43,93 @@ using (var connection =new SqliteConnection(@"Data Source=/Users/utsu/RiderProje
                         selectCommand.CommandText += " LIMIT 100";
                     }
 
+                    
                     // Execute the command and read the results
-                    using (var reader = selectCommand.ExecuteReader())
+                    var reader = selectCommand.ExecuteReader();
+                    while (reader.Read())
                     {
-                        // Check if there are any records returned
-                        if (reader.HasRows)
+
+                        if (!Convert.ToBoolean(Convert.ToInt32(reader["RecordImageProcessed"])) && !Convert.ToBoolean(Convert.ToInt32(reader["RecordTaken"])) )
                         {
+                            Console.WriteLine("Writing Chunk");
+                        var record = new MessageToDownloadRecord();
+                                                     record.RecordId = Convert.ToInt32(reader["RecordId"]);
+                                                     record.Url = (string)reader["RecordUrl"];
+                                                     UpdateTakenStatus(record.Url, 1);
+                                                     
+                                                     
+                                res.Records.Add(record);
+                            
+                        }
+                                              
+                        
+                    }
                             // Loop through the records and do something with them
+                            /*
                             while (reader.Read())
                             {
                                 
-                                if (reader.GetInt32(8) == 1)
-                                {
+                                Console.WriteLine("Writing Chunk");
                                 var record = new MessageToDownloadRecord();
                                 record.RecordId = reader.GetInt32(0);
                                 record.Url = reader.GetString(1);
+                                UpdateTakenStatus(record.Url, 1);
                                 
                                 res.Records.Add(record);
                                     
-                                }
 
 
                             }
-                        }
-                        else
-                        {
-                            Console.WriteLine("No records found.");
-                        }
-                    }
+                            */
+                        
                 }
             }
         } 
-        return Task.FromResult(res
-       );
+        return res;
     }
 
-    public override Task<Empty> UploadImage(MessageUrlRecordImage request, ServerCallContext context)
+    private async Task UpdateTakenStatus(string url,int status)
     {
-        Console.WriteLine(234);
-using (var connection =new SqliteConnection(@"Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
+using (var connection =new NpgsqlConnection(Config.cs))
         {
             connection.Open();
 
             // Create a parameterized insert command
-            using (var insertCommand = new SqliteCommand("UPDATE UrlRecord SET RecordImage = @RecordImage,RecordImageProcessed =@RecordImageProcessed  WHERE RecordUrl = @RecordUrl", connection))
+            using (var insertCommand =
+                   new NpgsqlCommand("UPDATE UrlRecord SET RecordTaken = @RecordTaken  WHERE RecordUrl = @RecordUrl",
+                       connection))
+            {
+                // Set the parameter values
+                insertCommand.Parameters.AddWithValue("@RecordUrl", url);
+
+                // Read the image data from a file
+
+                // Set the image parameter as a BLOB
+                insertCommand.Parameters.AddWithValue("@RecordTaken", 1);
+
+                // Execute the command
+                int rowsAffected = insertCommand.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Console.WriteLine("Record inserted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Error inserting record.");
+                }
+            }
+        }
+    }
+    public override Task<Empty> UploadImage(MessageUrlRecordImage request, ServerCallContext context)
+    {
+        Console.WriteLine(234);
+using (var connection =new NpgsqlConnection(Config.cs))
+        {
+            connection.Open();
+
+            // Create a parameterized insert command
+            using (var insertCommand = new NpgsqlCommand("UPDATE UrlRecord SET RecordImage = @RecordImage,RecordImageProcessed =@RecordImageProcessed  WHERE RecordUrl = @RecordUrl", connection))
             {
                 // Set the parameter values
                 insertCommand.Parameters.AddWithValue("@RecordUrl", request.Url);
@@ -93,8 +138,8 @@ using (var connection =new SqliteConnection(@"Data Source=/Users/utsu/RiderProje
                 byte[] imageData = request.Images.ToByteArray();
 
                 // Set the image parameter as a BLOB
-                insertCommand.Parameters.Add("@RecordImage", (SqliteType)DbType.Binary, imageData.Length).Value = imageData;
-                insertCommand.Parameters.Add("@RecordImageProcessed", (SqliteType)DbType.Int32, 1).Value = imageData;
+                insertCommand.Parameters.AddWithValue("@RecordImage",   imageData);
+                insertCommand.Parameters.AddWithValue("@RecordImageProcessed",  1);
 
                 // Execute the command
                 int rowsAffected = insertCommand.ExecuteNonQuery();

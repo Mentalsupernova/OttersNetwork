@@ -1,10 +1,12 @@
+using GrpcMessageBrotter.Private;
 using Microsoft.Data.Sqlite;
+using Npgsql;
 
 namespace GrpcMessageBrotter.Model;
 
 public class UrlRecord
 {
-   public int RecordId { get; set; } 
+   public long RecordId { get; set; } 
    public string RecordUrl { get; set; }
    public string RecordDescription { get; set; }
    public string RecordKeyWords { get; set; }
@@ -12,9 +14,10 @@ public class UrlRecord
    public string RecordMood { get; set; }
    public string RecordColorScheme { get; set; }
    public byte[] RecordImage { get; set; }
-   public bool RecordImageProcessed { get; set; }
+   public int RecordImageProcessed { get; set; }
+   public int RecordTaken { get; set; }
    
-   public UrlRecord(string recordUrl, string recordDescription, string recordKeyWords, string recordWebsiteType, string recordMood, string recordColorScheme)
+   public UrlRecord(string recordUrl, string recordDescription, string recordKeyWords, string recordWebsiteType, string recordMood, string recordColorScheme,int recordTaken,int recordImageProcessed)
    {
       RecordUrl = recordUrl;
       RecordDescription = recordDescription;
@@ -22,16 +25,19 @@ public class UrlRecord
       RecordWebsiteType = recordWebsiteType;
       RecordMood = recordMood;
       RecordColorScheme = recordColorScheme;
+      RecordTaken = recordTaken;
+      RecordImageProcessed = recordImageProcessed;
+
    }
 
    public void UpdateData()
    {
-using (var connection = new SqliteConnection("Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
+using (var connection =new NpgsqlConnection(Config.cs))
 {
     connection.Open();
 
     // Check if the record already exists
-    using (var checkCommand = new SqliteCommand("SELECT COUNT(*) FROM UrlRecord WHERE RecordUrl = @url", connection))
+    using (var checkCommand = new NpgsqlCommand("SELECT COUNT(*) FROM urlrecord WHERE recordurl = @url", connection))
     {
         checkCommand.Parameters.AddWithValue("@url", this.RecordUrl);
         int count = Convert.ToInt32(checkCommand.ExecuteScalar());
@@ -41,32 +47,25 @@ using (var connection = new SqliteConnection("Data Source=/Users/utsu/RiderProje
             Console.WriteLine("Record already exists. Updating data...");
             
             // Update the record
-            using (var updateCommand = new SqliteCommand("UPDATE UrlRecord SET  RecordDescription = @RecordDescription,RecordKeyWords = @RecordKeyWords,RecordWebsiteType = @RecordWebsiteType,RecordMood = @RecordMood,RecordColorScheme = @RecordColorScheme, WHERE RecordUrl = @RecordUrl", connection))
-            {
-        updateCommand.Parameters.AddWithValue("@RecordDescription", this.RecordDescription);
-        updateCommand.Parameters.AddWithValue("@RecordKeyWords", this.RecordKeyWords);
-        updateCommand.Parameters.AddWithValue("@RecordWebsiteType", this.RecordWebsiteType);
-        updateCommand.Parameters.AddWithValue("@RecordMood", this.RecordMood);
-        updateCommand.Parameters.AddWithValue("@RecordColorScheme", this.RecordColorScheme);
+            var cmd = new NpgsqlCommand();
+            cmd.Connection = connection;
+            cmd.CommandText = "UPDATE UrlRecord SET RecordDescription = @RecordDescription, RecordKeyWords = @RecordKeyWords, RecordWebsiteType = @RecordWebsiteType, RecordMood = @RecordMood,RecordColorScheme = @RecordColorScheme WHERE RecordUrl = @RecordUrl";
+            cmd.Parameters.AddWithValue("RecordDescription", this.RecordDescription);
+            cmd.Parameters.AddWithValue("RecordKeyWords", this.RecordKeyWords);
+            cmd.Parameters.AddWithValue("RecordWebsiteType", this.RecordWebsiteType);
+            cmd.Parameters.AddWithValue("RecordUrl", this.RecordUrl);
+            cmd.Parameters.AddWithValue("RecordMood", this.RecordMood);
+            cmd.Parameters.AddWithValue("RecordColorScheme", this.RecordColorScheme);
 
-                // Execute the command
-                int rowsAffected = updateCommand.ExecuteNonQuery();
-
-                if (rowsAffected > 0)
-                {
-                    Console.WriteLine("Record updated successfully.");
-                }
-                else
-                {
-                    Console.WriteLine("Error updating record.");
-                }
-            }
+            int rowsAffected = cmd.ExecuteNonQuery();
+            Console.WriteLine($"Rows affected: {rowsAffected}");
+            
 
         }
         else
         {
             
-    using (var insertCommand = new SqliteCommand("INSERT INTO UrlRecord (RecordUrl, RecordDescription,RecordKeyWords,RecordWebsiteType,RecordMood,RecordColorScheme) VALUES (@RecordUrl, @RecordDescription,@RecordKeyWords,@RecordWebsiteType,@RecordMood,@RecordColorScheme)", connection))
+    using (var insertCommand = new NpgsqlCommand("INSERT INTO UrlRecord (RecordUrl, RecordDescription,RecordKeyWords,RecordWebsiteType,RecordMood,RecordColorScheme,RecordImageProcessed,RecordTaken) VALUES (@RecordUrl, @RecordDescription,@RecordKeyWords,@RecordWebsiteType,@RecordMood,@RecordColorScheme,@RecordImageProcessed,@RecordTaken)", connection))
     {
         // Set the parameter values
         insertCommand.Parameters.AddWithValue("@RecordUrl", this.RecordUrl);
@@ -75,6 +74,8 @@ using (var connection = new SqliteConnection("Data Source=/Users/utsu/RiderProje
         insertCommand.Parameters.AddWithValue("@RecordWebsiteType", this.RecordWebsiteType);
         insertCommand.Parameters.AddWithValue("@RecordMood", this.RecordMood);
         insertCommand.Parameters.AddWithValue("@RecordColorScheme", this.RecordColorScheme);
+        insertCommand.Parameters.AddWithValue("@RecordTaken", this.RecordTaken);
+        insertCommand.Parameters.AddWithValue("@RecordImageProcessed", this.RecordImageProcessed);
         int rowsAffected = insertCommand.ExecuteNonQuery();
 
         if (rowsAffected > 0)

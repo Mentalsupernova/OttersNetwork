@@ -1,11 +1,12 @@
 create table if not exists UrlRecord(
-     RecordId INTEGER Primary Key
-    ,RecordUrl TEXT NOT NULL
+     RecordId SERIAL Primary Key 
+    ,RecordUrl text NOT NULL
     ,RecordDescription TEXT NULL
     ,RecordKeyWords TEXT NULL
     ,RecordWebsiteType TEXT NULL
     ,RecordMood TEXT NULL
     ,RecordColorScheme TEXT NULL
-    ,RecordImage blob NULL 
-    ,RecordImageProcessed INTEGER NULL
+    ,RecordImage bytea NULL 
+    ,RecordImageProcessed INTEGER NOT NULL 
+    ,RecordTaken INTEGER  NOT NULL 
 );

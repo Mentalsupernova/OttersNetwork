@@ -1,6 +1,8 @@
+using GrpcMessageBrotter.Private;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using GrpcMessageBrotter.Services;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddGrpc();
 
 var app = builder.Build();
-using (var db =new SqliteConnection(@"Data Source=/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/dataset_db.db"))
+
+using (var db =new NpgsqlConnection(Config.cs))
 {
     db.Open();
     FileInfo file = new FileInfo(@"/Users/utsu/RiderProjects/OttersNetwork/GrpcMessageBrotter/Context/MigrateDatabase.sql");

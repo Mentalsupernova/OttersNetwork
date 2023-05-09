@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Threading.Tasks;
@@ -37,6 +38,8 @@ public  class ScreenShooter
 static class Program
 {
     private static int counter = 0;
+    private static int TasksCounter = 0;
+    private  const int TASK_LIMIT = 10;
     static async Task SendToServer(WebsiteScreenshotRecord record)
     {
         using (var channel = GrpcChannel.ForAddress("http://localhost:5128"))
@@ -47,7 +50,9 @@ static class Program
                 new MessageUrlRecordImage() {Id = 0,RecordId = 0,Url =record.Url,Images =record.Screenshot});    //Url = record.Url,RecordId = 0,Images = record.Screenshot,Id = 0
 
         }
-       
+
+        TasksCounter--;
+
     }
 
     static async Task<List<string>> GetChunks()
@@ -78,24 +83,28 @@ static class Program
         t.Screenshot = bs;
         await SendToServer(t);
         counter--;
+        
+        Console.WriteLine("LOG closing Task with : {0}",url);
+        
     }
 
     static async Task ProcessAllChunks()
     {
         foreach (var url in await GetChunks())
         {
-            await ProcessScreenShot(url);
+            //if (TasksCounter < TASK_LIMIT)
+            //{
+                await ProcessScreenShot(url);
+                TasksCounter++;
+                Console.WriteLine("LOG adding Task with : {0}",url);
+
+            
+        //}
         }
     }
     
     static async Task Main()
     {
-        while (true)
-        {
-            if (counter == 0)
-            {
                 await ProcessAllChunks();
-            }
-        }
     }
 }
